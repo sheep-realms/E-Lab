@@ -30,38 +30,59 @@
         <input type="number" id="demo-ipt-strength-b" value="0">
         <button id="demo-btn-strength" disabled>Set Strength</button>
     </fieldset>
-    <fieldset>
-        <legend>State</legend>
-        <div>
-            A: <span id="demo-label-strength-a">0</span>
-        </div>
-        <div>
-            B: <span id="demo-label-strength-b">0</span>
-        </div>
-        <div>
-            Sent Frames:
-            <div class="demo-send-frames">
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
-                <div class="frame"></div>
+    <div class="demo-flex">
+        <fieldset>
+            <legend>Local State</legend>
+            <div>
+                A: <span id="demo-label-local-strength-a">0</span>
             </div>
-            <span id="demo-label-loop-count">0</span>
-        </div>
-        <div>
-            Envelope Playing:
-            <span id="demo-label-envelope-playing">false</span>
-        </div>
-        <div>
-            Envelope Time:
-            <span id="demo-label-envelope-time">0.0</span> / <span id="demo-label-envelope-end-time">0.0</span>
-        </div>
+            <div>
+                B: <span id="demo-label-local-strength-b">0</span>
+            </div>
+            <div>
+                Sent Frames:
+                <div class="demo-send-frames">
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                    <div class="frame"></div>
+                </div>
+                <span id="demo-label-loop-count">0</span>
+            </div>
+            <div>
+                Envelope Playing:
+                <span id="demo-label-envelope-playing">false</span>
+            </div>
+            <div>
+                Envelope Time:
+                <span id="demo-label-envelope-time">0.0</span> / <span id="demo-label-envelope-end-time">0.0</span>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Host State</legend>
+            <div>
+                A: <span id="demo-label-strength-a">0</span>
+            </div>
+            <div>
+                B: <span id="demo-label-strength-b">0</span>
+            </div>
+            <div>
+                Battery: <span id="demo-label-battery">0</span>
+            </div>
+        </fieldset>
+    </div>
+    <fieldset>
+        <legend>Envelope</legend>
+        <button id="demo-btn-envelope-load">Load</button>
+        <button id="demo-btn-envelope-play" disabled>Play</button>
+        <button id="demo-btn-envelope-pause" disabled>Pause</button>
+        <textarea id="demo-ipt-envelope-data"></textarea>
     </fieldset>
 
     <script src="res/script/demo.js"></script>

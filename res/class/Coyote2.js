@@ -29,6 +29,7 @@ class Coyote2 {
         };
 
         this.events = {
+            onBatteryChanged: null,
             onPlayingLoop: null,
             onStateChanged: null,
             onStrengthChanged: null
@@ -92,6 +93,12 @@ class Coyote2 {
             onCharacteristicValueChanged: (serviceUuid, characteristicUuid, value) => {
                 const data = new Uint8Array(value.buffer);
                 // console.log('收到数据', data);
+            },
+
+            onParsedValue: (serviceUuid, characteristicUuid, data) => {
+                if (characteristicUuid === this.uuid.battery) {
+                    return this.batteryChangedNotification(data);
+                }
             },
 
             onBitfieldParsed: (serviceUuid, characteristicUuid, data) => {
@@ -190,8 +197,8 @@ class Coyote2 {
      */
     setStrength(value) {
         const { a = this.strength.a, b = this.strength.b } = value;
-        this.strength.a = a;
-        this.strength.b = b;
+        this.strength.a = parseFloat(a.toFixed(3));
+        this.strength.b = parseFloat(b.toFixed(3));
         this.strengthWriting = true;
         this.sendStrength();
     }
@@ -223,10 +230,17 @@ class Coyote2 {
         return data.parsed.bytes[0];
     }
 
-    playEnvelope(envelope) {
-        this.currentEnvelope.playing = true;
+    loadEnvelope(envelope) {
         this.currentEnvelope.envelope = envelope;
         this.currentEnvelope.time = 0;
+    }
+
+    playEnvelope() {
+        this.currentEnvelope.playing = true;
+    }
+
+    pauseEnvelope() {
+        this.currentEnvelope.playing = false;
     }
 
     getEnvelopeValues(time = this.currentEnvelope.time) {
@@ -271,5 +285,9 @@ class Coyote2 {
             this.strength.b = b;
         }
         this.events.onStrengthChanged?.({ a, b });
+    }
+
+    batteryChangedNotification(data) {
+        this.events.onBatteryChanged?.(data.bytes[0]);
     }
 }
