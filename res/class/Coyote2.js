@@ -2,6 +2,7 @@ class Coyote2 {
     constructor() {
         this.inSession = false;
         this.connected = false;
+        this.playing = false;
         this.strength = {
             a: 0,
             b: 0
@@ -18,6 +19,21 @@ class Coyote2 {
             channelB: '955a1505-0fe2-f5aa-a094-84b8d4f3e8ad'
         };
         this.bluetoothDevice = undefined;
+
+        this.currentEnvelope = {
+            playing: false,
+            envelope: null,
+            time: 0
+        };
+
+        this.events = {
+            onStateChanged: null,
+            onStrengthChanged: null
+        };
+    }
+
+    setEventHandlers(handlers = {}) {
+        Object.assign(this.events, handlers);
     }
 
     async connect() {
@@ -48,6 +64,7 @@ class Coyote2 {
         this.bluetoothDevice.setEventHandlers({
             onConnected: async () => {
                 this.connected = true;
+                this.stateChangedNotification();
                 console.log('设备已连接');
 
                 this.bluetoothDevice.startNotifications(
@@ -63,20 +80,24 @@ class Coyote2 {
             onDisconnected: () => {
                 this.connected = false;
                 this.inSession = false;
+                this.stop();
                 console.log('设备已断开');
             },
 
             onCharacteristicValueChanged: (serviceUuid, characteristicUuid, value) => {
                 const data = new Uint8Array(value.buffer);
-                console.log('收到数据', data);
+                // console.log('收到数据', data);
             },
 
             onBitfieldParsed: (serviceUuid, characteristicUuid, data) => {
-                console.log('解析数据', data);
+                if (characteristicUuid === this.uuid.strength) {
+                    return this.strengthChangedNotification(data);
+                }
             },
 
             onReconnectAttempt: () => {
                 this.connected = false;
+                this.stop();
                 console.log('正在尝试重连...');
             }
         });
@@ -85,12 +106,30 @@ class Coyote2 {
     }
 
     start() {
+        if (this.playing) return;
+        this.playing = true;
+        this.stateChangedNotification();
+        this.sendStrength();
         this.timer = rafInterval(() => {
-            this.sendWave();
+            this.playingLoop();
         }, 100);
     }
 
+    playingLoop() {
+        this.sendWave();
+        if (!this.currentEnvelope.playing) return;
+        const data = this.getEnvelopeValues();
+        this.setStrength({
+            a: data.channelA.strength,
+            b: data.channelB.strength
+        });
+        this.nextEnvelopeTime();
+    }
+
     stop() {
+        if (!this.playing) return;
+        this.playing = false;
+        this.stateChangedNotification();
         clearRafInterval(this.timer);
     }
 
@@ -155,5 +194,42 @@ class Coyote2 {
         const data = await this.bluetoothDevice.readCharacteristic(this.uuid.serviceA, this.uuid.battery);
 
         return data.parsed.bytes[0];
+    }
+
+    playEnvelope(envelope) {
+        this.currentEnvelope.playing = true;
+        this.currentEnvelope.envelope = envelope;
+        this.currentEnvelope.time = 0;
+    }
+
+    getEnvelopeValues(time = this.currentEnvelope.time) {
+        const values = this.currentEnvelope.envelope.getValues(time);
+        return {
+            channelA: {
+                strength: values.channel_a_strength
+            },
+            channelB: {
+                strength: values.channel_b_strength
+            }
+        }
+    }
+
+    nextEnvelopeTime() {
+        return this.currentEnvelope.time += 0.1;
+    }
+
+    stateChangedNotification() {
+        this.events.onStateChanged?.({
+            inSession: this.inSession,
+            connected: this.connected,
+            playing: this.playing
+        });
+    }
+
+    strengthChangedNotification(data) {
+        this.events.onStrengthChanged?.({
+            a:  Math.round(data.a / 2047 * 200),
+            b:  Math.round(data.b / 2047 * 200)
+        });
     }
 }
