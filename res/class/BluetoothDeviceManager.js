@@ -42,6 +42,7 @@ class BluetoothDeviceManager {
         this.events = {
             onDeviceSelected: null,
             onConnected: null,
+            onConnectError: null,
             onDisconnected: null,
             onServiceDiscovered: null,
             onCharacteristicDiscovered: null,
@@ -84,6 +85,7 @@ class BluetoothDeviceManager {
             await this._connect();
         } catch (error) {
             console.error('Scan failed:', error);
+            this.events.onConnectError?.(error);
         }
     }
 

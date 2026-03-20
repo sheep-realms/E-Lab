@@ -75,10 +75,6 @@ class Envelope {
         this._buildCache();
     }
 
-    /* =========================
-       查询
-    ========================= */
-
     getValues(time) {
         if (this.cache) {
             return this._getFromCache(time);
@@ -133,10 +129,6 @@ class Envelope {
         return v0 + (v1 - v0) * k;
     }
 
-    /* =========================
-       构建缓存
-    ========================= */
-
     _buildCache() {
         const step = this.options.cacheResolution;
         if (!step) {
@@ -173,10 +165,6 @@ class Envelope {
         }
     }
 
-    /* =========================
-       修复点：循环缓存查询
-    ========================= */
-
     _getFromCache(timeInput) {
         let t = Number(timeInput);
 
@@ -197,10 +185,6 @@ class Envelope {
 
         return this.result;
     }
-
-    /* =========================
-       Timing
-    ========================= */
 
     _compileTiming(tf) {
         if (!tf || tf === "none") return null;

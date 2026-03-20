@@ -11,26 +11,33 @@
     <script src="res/class/Coyote2.js"></script>
 </head>
 <body>
-    <div>
+    <fieldset>
+        <legend>Network</legend>
         <button id="demo-btn-connect">Connect</button>
-    </div>
-    <div>
+        <button id="demo-btn-disconnect" disabled>Disconnect</button>
+    </fieldset>
+    <fieldset>
+        <legend>Output</legend>
         <button id="demo-btn-start" disabled>Start</button>
         <button id="demo-btn-stop" disabled>Stop</button>
-    </div>
-    <div>
+    </fieldset>
+    <fieldset>
+        <legend>Strength</legend>
         <label for="demo-ipt-strength-a">A:</label>
         <input type="number" id="demo-ipt-strength-a" value="0">
         <label for="demo-ipt-strength-b">B:</label>
         <input type="number" id="demo-ipt-strength-b" value="0">
         <button id="demo-btn-strength" disabled>Set Strength</button>
-    </div>
-    <div>
-        A: <span id="demo-label-strength-a">0</span>
-    </div>
-    <div>
-        B: <span id="demo-label-strength-b">0</span>
-    </div>
+    </fieldset>
+    <fieldset>
+        <legend>State</legend>
+        <div>
+            A: <span id="demo-label-strength-a">0</span>
+        </div>
+        <div>
+            B: <span id="demo-label-strength-b">0</span>
+        </div>
+    </fieldset>
 
     <script src="res/script/demo.js"></script>
 </body>

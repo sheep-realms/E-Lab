@@ -2,10 +2,12 @@ let coyote2 = new Coyote2();
 
 coyote2.setEventHandlers({
     onStateChanged: data => {
-        $('#demo-btn-connect').prop('disabled', data.connected);
-        $('#demo-btn-start, #demo-btn-strength').prop('disabled', !data.connected);
-        $('#demo-btn-start').prop('disabled', data.playing);
-        $('#demo-btn-stop').prop('disabled', !data.playing);
+        $('#demo-btn-connect').text(data.connecting ? 'Connecting...' : 'Connect');
+        $('#demo-btn-connect').prop('disabled', data.connecting || data.connected);
+        $('#demo-btn-disconnect').prop('disabled', !data.connected);
+        $('#demo-btn-strength').prop('disabled', !data.connected);
+        $('#demo-btn-start').prop('disabled', !data.connected || data.playing);
+        $('#demo-btn-stop').prop('disabled', !data.connected || !data.playing);
     },
     onStrengthChanged: data => {
         $('#demo-label-strength-a').text(data.a);
@@ -15,6 +17,10 @@ coyote2.setEventHandlers({
 
 $(document).on('click', '#demo-btn-connect', async () => {
     await coyote2.connect();
+});
+
+$(document).on('click', '#demo-btn-disconnect', async () => {
+    coyote2.disconnect();
 });
 
 $(document).on('click', '#demo-btn-start', () => {

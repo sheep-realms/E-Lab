@@ -1,6 +1,7 @@
 class Coyote2 {
     constructor() {
         this.inSession = false;
+        this.connecting = false;
         this.connected = false;
         this.playing = false;
         this.strength = {
@@ -64,6 +65,7 @@ class Coyote2 {
         this.bluetoothDevice.setEventHandlers({
             onConnected: async () => {
                 this.connected = true;
+                this.connecting = false;
                 this.stateChangedNotification();
                 console.log('设备已连接');
 
@@ -79,8 +81,9 @@ class Coyote2 {
 
             onDisconnected: () => {
                 this.connected = false;
+                this.connecting = false;
                 this.inSession = false;
-                this.stop();
+                this.stateChangedNotification();
                 console.log('设备已断开');
             },
 
@@ -97,12 +100,28 @@ class Coyote2 {
 
             onReconnectAttempt: () => {
                 this.connected = false;
-                this.stop();
+                this.connecting = true;
+                this.stateChangedNotification();
                 console.log('正在尝试重连...');
+            },
+
+            onConnectError: () => {
+                this.connected = false;
+                this.connecting = false;
+                this.inSession = false;
+                this.stateChangedNotification();
+                console.log('连接发生错误');
             }
         });
 
+        this.connecting = true;
+        this.stateChangedNotification();
         await this.bluetoothDevice.scanAndConnect();
+    }
+
+    disconnect() {
+        this.stop();
+        this.bluetoothDevice.disconnect();
     }
 
     start() {
@@ -163,7 +182,7 @@ class Coyote2 {
      * @param {Number} value.b 通道B
      */
     setStrength(value) {
-        const { a = 0, b = 0 } = value;
+        const { a = this.strength.a, b = this.strength.b } = value;
         this.strength.a = a;
         this.strength.b = b;
         this.sendStrength();
@@ -222,14 +241,18 @@ class Coyote2 {
         this.events.onStateChanged?.({
             inSession: this.inSession,
             connected: this.connected,
+            connecting: this.connecting,
             playing: this.playing
         });
     }
 
     strengthChangedNotification(data) {
-        this.events.onStrengthChanged?.({
+        const { a, b } = {
             a:  Math.round(data.a / 2047 * 200),
             b:  Math.round(data.b / 2047 * 200)
-        });
+        }
+        this.strength.a = a;
+        this.strength.b = b;
+        this.events.onStrengthChanged?.({ a, b });
     }
 }
