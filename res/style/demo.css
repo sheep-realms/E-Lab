@@ -1,0 +1,17 @@
+.demo-send-frames {
+    display: inline-flex;
+    background-color: #eee;
+}
+
+.demo-send-frames .frame {
+    box-sizing: border-box;
+    width: 4px;
+    height: 12px;
+    background-color: transparent;
+    transition: background-color .3s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.demo-send-frames .frame.set {
+    background-color: #000;
+    transition: background-color 0s;
+}

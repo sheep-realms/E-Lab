@@ -28,6 +28,7 @@ class Coyote2 {
         };
 
         this.events = {
+            onPlayingLoop: null,
             onStateChanged: null,
             onStrengthChanged: null
         };
@@ -135,6 +136,10 @@ class Coyote2 {
     }
 
     playingLoop() {
+        this.events.onPlayingLoop({
+            wave: this.wave,
+            strength: this.strength
+        });
         this.sendWave();
         if (!this.currentEnvelope.playing) return;
         const data = this.getEnvelopeValues();

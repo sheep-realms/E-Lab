@@ -1,4 +1,6 @@
 let coyote2 = new Coyote2();
+let nowSendFrame = -1;
+let loopCount = 0;
 
 coyote2.setEventHandlers({
     onStateChanged: data => {
@@ -12,6 +14,12 @@ coyote2.setEventHandlers({
     onStrengthChanged: data => {
         $('#demo-label-strength-a').text(data.a);
         $('#demo-label-strength-b').text(data.b);
+    },
+    onPlayingLoop: () => {
+        nowSendFrame = (nowSendFrame + 1) % 10;
+        $('#demo-label-loop-count').text(++loopCount);
+        $('.demo-send-frames .frame').removeClass('set');
+        $('.demo-send-frames .frame').eq(nowSendFrame).addClass('set');
     }
 });
 
