@@ -15,11 +15,14 @@ coyote2.setEventHandlers({
         $('#demo-label-strength-a').text(data.a);
         $('#demo-label-strength-b').text(data.b);
     },
-    onPlayingLoop: () => {
+    onPlayingLoop: data => {
         nowSendFrame = (nowSendFrame + 1) % 10;
         $('#demo-label-loop-count').text(++loopCount);
         $('.demo-send-frames .frame').removeClass('set');
         $('.demo-send-frames .frame').eq(nowSendFrame).addClass('set');
+        $('#demo-label-envelope-playing').text(data.currentEnvelope.playing);
+        $('#demo-label-envelope-time').text(data.currentEnvelope.time.toFixed(1));
+        $('#demo-label-envelope-end-time').text(data.currentEnvelope.envelope.tracksEndTime.toFixed(1));
     }
 });
 

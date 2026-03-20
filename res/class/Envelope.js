@@ -15,6 +15,7 @@ class Envelope {
 
         this.trackNames = [];
         this.tracks = [];
+        this.tracksEndTime = 0;
 
         this.cache = null;
         this.cacheStart = 0;
@@ -32,17 +33,20 @@ class Envelope {
     setTracks(tracksInput) {
         this.trackNames.length = 0;
         this.tracks.length = 0;
+        this.tracksEndTime = 0;
 
         for (const t of tracksInput) {
             const keyframes = (t.keyframe || [])
                 .map(k => ({
                     time: Number(k.time),
-                    value: k.value,
+                    value: Number(k.value),
                     timing_function: k.timing_function ?? "none"
                 }))
                 .sort((a, b) => a.time - b.time);
 
             if (keyframes.length === 0) continue;
+            const endTime = keyframes[keyframes.length - 1].time;
+            if (endTime > this.tracksEndTime) this.tracksEndTime = endTime;
 
             const n = keyframes.length;
 
@@ -191,9 +195,9 @@ class Envelope {
         if (tf === "linear") return linear;
 
         if (tf === "ease") return ease;
-        if (tf === "ease-in") return easeIn;
-        if (tf === "ease-out") return easeOut;
-        if (tf === "ease-in-out") return easeInOut;
+        if (tf === "ease_in") return easeIn;
+        if (tf === "ease_out") return easeOut;
+        if (tf === "ease_in_out") return easeInOut;
 
         const m = tf.match(/cubic-bezier\(([^)]+)\)/);
         if (m) {

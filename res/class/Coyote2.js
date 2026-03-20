@@ -8,6 +8,7 @@ class Coyote2 {
             a: 0,
             b: 0
         };
+        this.strengthWriting = false;
         this.wave = '21810F';
         this.devicePrefix = 'D-LAB';
         this.timer = undefined;
@@ -138,7 +139,8 @@ class Coyote2 {
     playingLoop() {
         this.events.onPlayingLoop({
             wave: this.wave,
-            strength: this.strength
+            strength: this.strength,
+            currentEnvelope: this.currentEnvelope
         });
         this.sendWave();
         if (!this.currentEnvelope.playing) return;
@@ -190,6 +192,7 @@ class Coyote2 {
         const { a = this.strength.a, b = this.strength.b } = value;
         this.strength.a = a;
         this.strength.b = b;
+        this.strengthWriting = true;
         this.sendStrength();
     }
 
@@ -239,7 +242,12 @@ class Coyote2 {
     }
 
     nextEnvelopeTime() {
-        return this.currentEnvelope.time += 0.1;
+        this.currentEnvelope.time = parseFloat(
+            (
+                (this.currentEnvelope.time + 0.1) % Math.ceil(this.currentEnvelope.envelope.tracksEndTime)
+            ).toFixed(3)
+        );
+        return this.currentEnvelope.time;
     }
 
     stateChangedNotification() {
@@ -256,8 +264,12 @@ class Coyote2 {
             a:  Math.round(data.a / 2047 * 200),
             b:  Math.round(data.b / 2047 * 200)
         }
-        this.strength.a = a;
-        this.strength.b = b;
+        if (this.strengthWriting) {
+            this.strengthWriting = false;
+        } else {
+            this.strength.a = a;
+            this.strength.b = b;
+        }
         this.events.onStrengthChanged?.({ a, b });
     }
 }
