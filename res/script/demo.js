@@ -140,41 +140,41 @@ $(document).on('click', '#demo-btn-envelope-video-sync', () => {
 });
 
 const demoTracks = [
-        {
-            "track": "channel_a_strength",
-            "keyframe": [
-                {
-                    "time": 0,
-                    "value": 0
-                }, {
-                    "time": 5,
-                    "value": 50,
-                    "timing_function": "linear"
-                }, {
-                    "time": 7,
-                    "value": 0,
-                    "timing_function": "linear"
-                }
-            ]
-        },
-        {
-            "track": "channel_a_wave_y",
-            "keyframe": [
-                {
-                    "time": 0,
-                    "value": 9
-                }, {
-                    "time": 5,
-                    "value": 30,
-                    "timing_function": "linear"
-                }, {
-                    "time": 7,
-                    "value": 9,
-                    "timing_function": "linear"
-                }
-            ]
-        }
-    ]
+    {
+        "track": "channel_a_strength",
+        "keyframe": [
+            {
+                "time": 0,
+                "value": 0
+            }, {
+                "time": 5,
+                "value": 50,
+                "timing_function": "linear"
+            }, {
+                "time": 7,
+                "value": 0,
+                "timing_function": "linear"
+            }
+        ]
+    },
+    {
+        "track": "channel_a_wave_y",
+        "keyframe": [
+            {
+                "time": 0,
+                "value": 9
+            }, {
+                "time": 5,
+                "value": 30,
+                "timing_function": "linear"
+            }, {
+                "time": 7,
+                "value": 9,
+                "timing_function": "linear"
+            }
+        ]
+    }
+];
 
 let envelope = new Envelope(
     demoTracks,
