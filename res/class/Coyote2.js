@@ -4,14 +4,45 @@ class Coyote2 {
         this.connecting = false;
         this.connected = false;
         this.playing = false;
+
+        this.channel = {
+            a: {
+                strength: 0,
+                wave: '21810F',
+                waveData: {
+                    x: 1,
+                    y: 9,
+                    z: 31
+                }
+            },
+            b: {
+                strength: 0,
+                wave: '21810F',
+                waveData: {
+                    x: 1,
+                    y: 9,
+                    z: 31
+                }
+            }
+        };
+
         this.strength = {
             a: 0,
             b: 0
         };
         this.strengthWriting = false;
+
         this.wave = '21810F';
-        this.devicePrefix = 'D-LAB';
+        this.waveData = {
+            x: 1,
+            y: 9,
+            x: 31
+        };
+        this.targetHz = 100;
+        this.realHz = 100;
+
         this.timer = undefined;
+        this.devicePrefix = 'D-LAB';
         this.uuid = {
             serviceA: '955a180a-0fe2-f5aa-a094-84b8d4f3e8ad',
             serviceB: '955a180b-0fe2-f5aa-a094-84b8d4f3e8ad',
@@ -34,6 +65,95 @@ class Coyote2 {
             onStateChanged: null,
             onStrengthChanged: null
         };
+    }
+
+    /**
+     * 编码波形
+     * @param {Number} x 脉冲大小 [0, 31]
+     * @param {Number} y 脉冲间隔 [0, 1023]
+     * @param {Number} z 脉冲宽度 [0, 31]
+     * @returns {String} 波形编码
+     */
+    _encodeWave(x, y, z) {
+        if (x < 0 || x > 31) throw new Error("X 超出范围 (0–31)");
+        if (y < 0 || y > 1023) throw new Error("Y 超出范围 (0–1023)");
+        if (z < 0 || z > 31) throw new Error("Z 超出范围 (0–31)");
+
+        const value = (z << 15) | (y << 5) | x;
+
+        const byte0 = value & 0xFF;
+        const byte1 = (value >> 8) & 0xFF;
+        const byte2 = (value >> 16) & 0xFF;
+
+        return (
+            byte0.toString(16).padStart(2, "0") +
+            byte1.toString(16).padStart(2, "0") +
+            byte2.toString(16).padStart(2, "0")
+        ).toUpperCase();
+    }
+
+    /**
+     * 解码波形
+     * @param {String} hex 波形编码
+     * @returns {Object} 波形参数
+     */
+    _decodeWave(hex) {
+        const byte0 = parseInt(hex.slice(0, 2), 16)
+        const byte1 = parseInt(hex.slice(2, 4), 16)
+        const byte2 = parseInt(hex.slice(4, 6), 16)
+
+        const value = byte0 | (byte1 << 8) | (byte2 << 16)
+
+        const x = value & 0b11111
+        const y = (value >> 5) & 0b1111111111
+        const z = (value >> 15) & 0b11111
+
+        return { x, y, z }
+    }
+
+    /**
+     * 根据目标频率计算最佳波形
+     * @param {Number} targetHz 目标频率 (0, 1000]
+     * @param {Number} z 脉冲宽度 [0, 31]
+     * @returns {Object} 计算结果
+     */
+    _calculateBestParams(targetHz, z = this.waveData.z ?? 20) {
+        if (targetHz <= 0 || targetHz > 1000) {
+            throw new Error("目标频率范围应为 (0, 1000] Hz")
+        }
+
+        let best = null
+
+        for (let x = 1; x <= 31; x++) {
+            const period = Math.round((1000 * x) / targetHz)
+
+            if (period < 10 || period > 1000) continue
+
+            const y = period - x
+            if (y < 0 || y > 1023) continue
+
+            const realHz = (1000 * x) / (x + y)
+            const error = Math.abs(realHz - targetHz)
+
+            if (!best || error < best.error) {
+                best = {
+                    x,
+                    y,
+                    z,
+                    period,
+                    realHz,
+                    error
+                }
+            }
+        }
+
+        if (!best) {
+            throw new Error("无法找到合适参数")
+        }
+
+        best.bytes = this._encodeWave(best.x, best.y, best.z)
+
+        return best
     }
 
     setEventHandlers(handlers = {}) {
@@ -145,8 +265,14 @@ class Coyote2 {
 
     playingLoop() {
         this.events.onPlayingLoop({
-            wave: this.wave,
-            strength: this.strength,
+            wave: {
+                a: this.channel.a.wave,
+                b: this.channel.b.wave
+            },
+            strength: {
+                a: this.channel.a.strength,
+                b: this.channel.b.strength
+            },
             currentEnvelope: this.currentEnvelope
         });
         this.sendWave();
@@ -179,11 +305,19 @@ class Coyote2 {
     }
 
     async sendWave() {
-        this.bluetoothDevice.writeCharacteristic(this.uuid.serviceB, this.uuid.channelA, this._hexStringToUint8Array(this.wave))
+        this.bluetoothDevice.writeCharacteristic(
+            this.uuid.serviceB,
+            this.uuid.channelA,
+            this._hexStringToUint8Array(this.channel.a.wave)
+        )
             .catch(error => {
                 console.warn('写入异常：' + error);
             });
-        this.bluetoothDevice.writeCharacteristic(this.uuid.serviceB, this.uuid.channelB, this._hexStringToUint8Array(this.wave))
+        this.bluetoothDevice.writeCharacteristic(
+            this.uuid.serviceB,
+            this.uuid.channelB,
+            this._hexStringToUint8Array(this.channel.b.wave)
+        )
             .catch(error => {
                 console.warn('写入异常：' + error);
             });
@@ -196,16 +330,16 @@ class Coyote2 {
      * @param {Number} value.b 通道B
      */
     setStrength(value) {
-        const { a = this.strength.a, b = this.strength.b } = value;
-        this.strength.a = parseFloat(a.toFixed(3));
-        this.strength.b = parseFloat(b.toFixed(3));
+        const { a = this.channel.a.strength, b = this.channel.b.strength } = value;
+        this.channel.a.strength = parseFloat(a.toFixed(3));
+        this.channel.b.strength = parseFloat(b.toFixed(3));
         this.strengthWriting = true;
         this.sendStrength();
     }
 
     async sendStrength() {
-        let realStrengthA = Math.round(this.strength.a / 200 * 2047);
-        let realStrengthB = Math.round(this.strength.b / 200 * 2047);
+        let realStrengthA = Math.round(this.channel.a.strength / 200 * 2047);
+        let realStrengthB = Math.round(this.channel.b.strength / 200 * 2047);
         let setStrengthPkg = new Uint8Array([
             realStrengthA >> 5 & 0xff,
             ((realStrengthA << 3) & 0xff) | ((realStrengthB >> 8) & 0xff),
@@ -228,6 +362,38 @@ class Coyote2 {
         const data = await this.bluetoothDevice.readCharacteristic(this.uuid.serviceA, this.uuid.battery);
 
         return data.parsed.bytes[0];
+    }
+
+    setWaveXYZ(channel = 'all', waveData) {
+        const {
+            x = waveData.x ?? 1,
+            y = waveData.y ?? 9,
+            z = waveData.z ?? 31
+        } = waveData;
+        if (x < 0 || x > 31) throw new Error("X 超出范围 (0–31)");
+        if (y < 0 || y > 1023) throw new Error("Y 超出范围 (0–1023)");
+        if (z < 0 || z > 31) throw new Error("Z 超出范围 (0–31)");
+        for (const key in waveData) {
+            if (!Object.hasOwn(waveData, key)) continue;
+            const e = waveData[key];
+            if (channel === 'all' || channel === 'a') this.channel.a.waveData[key] = e;
+            if (channel === 'all' || channel === 'b') this.channel.b.waveData[key] = e;
+        }
+        this.updateWave();
+        return (channel === 'all' || channel === 'a') ? this.channel.a.waveData : this.channel.b.waveData;
+    }
+
+    updateWave() {
+        this.channel.a.wave = this._encodeWave(
+            this.channel.a.waveData.x,
+            this.channel.a.waveData.y,
+            this.channel.a.waveData.z
+        );
+        this.channel.b.wave = this._encodeWave(
+            this.channel.b.waveData.x,
+            this.channel.b.waveData.y,
+            this.channel.b.waveData.z
+        );
     }
 
     loadEnvelope(envelope) {
@@ -281,8 +447,8 @@ class Coyote2 {
         if (this.strengthWriting) {
             this.strengthWriting = false;
         } else {
-            this.strength.a = a;
-            this.strength.b = b;
+            this.channel.a.strength = a;
+            this.channel.b.strength = b;
         }
         this.events.onStrengthChanged?.({ a, b });
     }

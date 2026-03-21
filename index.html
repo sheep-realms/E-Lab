@@ -25,10 +25,22 @@
     <fieldset>
         <legend>Strength</legend>
         <label for="demo-ipt-strength-a">A:</label>
-        <input type="number" id="demo-ipt-strength-a" value="0">
+        <input type="number" id="demo-ipt-strength-a" value="0" min="0" max="200">
         <label for="demo-ipt-strength-b">B:</label>
-        <input type="number" id="demo-ipt-strength-b" value="0">
+        <input type="number" id="demo-ipt-strength-b" value="0" min="0" max="200">
         <button id="demo-btn-strength" disabled>Set Strength</button>
+    </fieldset>
+    <fieldset>
+        <legend>Wave</legend>
+        <label for="demo-ipt-wave-z">X:</label>
+        <input type="number" id="demo-ipt-wave-x" value="1" min="0" max="31">
+        <label for="demo-ipt-wave-z">Y:</label>
+        <input type="number" id="demo-ipt-wave-y" value="9" min="0" max="1023">
+        <label for="demo-ipt-wave-z">Z:</label>
+        <input type="number" id="demo-ipt-wave-z" value="31" min="0" max="31">
+        <button id="demo-btn-wave">Set Wave (All)</button>
+        <button id="demo-btn-wave-a">Set Wave (A)</button>
+        <button id="demo-btn-wave-b">Set Wave (B)</button>
     </fieldset>
     <div class="demo-flex">
         <fieldset>
@@ -67,13 +79,13 @@
         <fieldset>
             <legend>Host State</legend>
             <div>
-                A: <span id="demo-label-strength-a">0</span>
+                A: <span id="demo-label-strength-a">?</span>
             </div>
             <div>
-                B: <span id="demo-label-strength-b">0</span>
+                B: <span id="demo-label-strength-b">?</span>
             </div>
             <div>
-                Battery: <span id="demo-label-battery">0</span>
+                Battery: <span id="demo-label-battery">?</span>
             </div>
         </fieldset>
     </div>
