@@ -7,7 +7,7 @@ coyote2.setEventHandlers({
         $('#demo-btn-connect').text(data.connecting ? 'Connecting...' : 'Connect');
         $('#demo-btn-connect').prop('disabled', data.connecting || data.connected);
         $('#demo-btn-disconnect').prop('disabled', !data.connected);
-        $('#demo-btn-strength').prop('disabled', !data.connected);
+        $('#demo-btn-strength, #demo-btn-strength-max').prop('disabled', !data.connected);
         $('#demo-btn-start').prop('disabled', !data.connected || data.playing);
         $('#demo-btn-stop').prop('disabled', !data.connected || !data.playing);
         if (!data.connected) {
@@ -17,8 +17,8 @@ coyote2.setEventHandlers({
     onStrengthChanged: data => {
         $('#demo-label-strength-a').text(data.a);
         $('#demo-label-strength-b').text(data.b);
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength);
+        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
+        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
     },
     onPlayingLoop: data => {
         nowSendFrame = (nowSendFrame + 1) % 10;
@@ -27,9 +27,9 @@ coyote2.setEventHandlers({
         $('.demo-send-frames .frame').eq(nowSendFrame).addClass('set');
         $('#demo-label-envelope-playing').text(data.currentEnvelope.playing);
         $('#demo-label-envelope-time').text(data.currentEnvelope.time.toFixed(1));
-        $('#demo-label-envelope-end-time').text(data.currentEnvelope.envelope?.tracksEndTime.toFixed(1));
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength);
+        $('#demo-label-envelope-end-time').text(data.currentEnvelope.envelope?.tracksEndTime.toFixed(1) || '0.0');
+        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
+        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
     },
     onBatteryChanged: value => {
         $('#demo-label-battery').text(value);
@@ -50,8 +50,8 @@ $(document).on('click', '#demo-btn-disconnect', async () => {
 
 $(document).on('click', '#demo-btn-start', () => {
     coyote2.start();
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
 });
 
 $(document).on('click', '#demo-btn-stop', () => {
@@ -64,8 +64,18 @@ $(document).on('click', '#demo-btn-strength', () => {
         b: Number($('#demo-ipt-strength-b').val())
     };
     coyote2.setStrength(strength);
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+});
+
+$(document).on('click', '#demo-btn-strength-max', () => {
+    const strength = {
+        a: Number($('#demo-ipt-strength-a-max').val()),
+        b: Number($('#demo-ipt-strength-b-max').val())
+    };
+    coyote2.setMaxStrength(strength);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
 });
 
 function getWaveXYZ() {
