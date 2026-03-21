@@ -7,7 +7,11 @@ class Coyote2 {
 
         this.channel = {
             a: {
-                strength: 0,
+                strength: {
+                    max: 30,
+                    value: 0,
+                    output: 0
+                },
                 wave: '21810F',
                 waveData: {
                     x: 1,
@@ -16,7 +20,11 @@ class Coyote2 {
                 }
             },
             b: {
-                strength: 0,
+                strength: {
+                    max: 30,
+                    value: 0,
+                    output: 0
+                },
                 wave: '21810F',
                 waveData: {
                     x: 1,
@@ -328,18 +336,36 @@ class Coyote2 {
      * @param {Object} value 强度
      * @param {Number} value.a 通道A
      * @param {Number} value.b 通道B
+     * @param {Boolean} backWrite 主机回写
      */
-    setStrength(value) {
-        const { a = this.channel.a.strength, b = this.channel.b.strength } = value;
-        this.channel.a.strength = parseFloat(a.toFixed(3));
-        this.channel.b.strength = parseFloat(b.toFixed(3));
+    setStrength(value, backWrite = false) {
+        const { a = this.channel.a.strength.value, b = this.channel.b.strength.value } = value;
+        this.channel.a.strength.value = Math.min(Math.max(parseFloat(a.toFixed(3)), 0), 100);
+        this.channel.b.strength.value = Math.min(Math.max(parseFloat(b.toFixed(3)), 0), 100);
+        this.channel.a.strength.output = this.channel.a.strength.value / 100 * this.channel.a.strength.max;
+        this.channel.b.strength.output = this.channel.b.strength.value / 100 * this.channel.b.strength.max;
+        if (backWrite) return;
         this.strengthWriting = true;
+        this.sendStrength();
+    }
+    /**
+     * 设置最大强度
+     * @param {Object} value 强度
+     * @param {Number} value.a 通道A
+     * @param {Number} value.b 通道B
+     */
+    setMaxStrength(value) {
+        const { a = this.channel.a.strength.max, b = this.channel.b.strength.max } = value;
+        this.channel.a.strength.max = Math.min(Math.max(parseFloat(a.toFixed(3)), 0), 200);
+        this.channel.b.strength.max = Math.min(Math.max(parseFloat(b.toFixed(3)), 0), 200);
+        this.channel.a.strength.output = this.channel.a.strength.value / 100 * this.channel.a.strength.max;
+        this.channel.b.strength.output = this.channel.b.strength.value / 100 * this.channel.b.strength.max;
         this.sendStrength();
     }
 
     async sendStrength() {
-        let realStrengthA = Math.round(this.channel.a.strength / 200 * 2047);
-        let realStrengthB = Math.round(this.channel.b.strength / 200 * 2047);
+        let realStrengthA = Math.round(this.channel.a.strength.output / 200 * 2047);
+        let realStrengthB = Math.round(this.channel.b.strength.output / 200 * 2047);
         let setStrengthPkg = new Uint8Array([
             realStrengthA >> 5 & 0xff,
             ((realStrengthA << 3) & 0xff) | ((realStrengthB >> 8) & 0xff),
@@ -482,8 +508,10 @@ class Coyote2 {
         if (this.strengthWriting) {
             this.strengthWriting = false;
         } else {
-            this.channel.a.strength = a;
-            this.channel.b.strength = b;
+            this.setStrength({
+                a: (this.channel.a.strength.output / this.channel.a.strength.max * 100) || 0,
+                b: (this.channel.b.strength.output / this.channel.b.strength.max * 100) || 0
+            }, true);
         }
         this.events.onStrengthChanged?.({ a, b });
     }
