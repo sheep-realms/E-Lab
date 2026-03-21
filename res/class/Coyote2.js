@@ -403,8 +403,8 @@ class Coyote2 {
             if (!Object.hasOwn(waveData, key)) continue;
             const e = waveData[key];
             if (typeof e !== 'number') continue;
-            if (channel === 'all' || channel === 'a') this.channel.a.waveData[key] = e;
-            if (channel === 'all' || channel === 'b') this.channel.b.waveData[key] = e;
+            if (channel === 'all' || channel === 'a') this.channel.a.waveData[key] = Math.round(e);
+            if (channel === 'all' || channel === 'b') this.channel.b.waveData[key] = Math.round(e);
         }
         this.updateWave();
         return (channel === 'all' || channel === 'a') ? this.channel.a.waveData : this.channel.b.waveData;

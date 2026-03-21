@@ -17,8 +17,8 @@ coyote2.setEventHandlers({
     onStrengthChanged: data => {
         $('#demo-label-strength-a').text(data.a);
         $('#demo-label-strength-b').text(data.b);
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
     },
     onPlayingLoop: data => {
         nowSendFrame = (nowSendFrame + 1) % 10;
@@ -28,8 +28,22 @@ coyote2.setEventHandlers({
         $('#demo-label-envelope-playing').text(data.currentEnvelope.playing);
         $('#demo-label-envelope-time').text(data.currentEnvelope.time.toFixed(1));
         $('#demo-label-envelope-end-time').text(data.currentEnvelope.envelope?.tracksEndTime.toFixed(1) || '0.0');
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
+        $('#demo-label-local-wave-a').text(
+            [
+                coyote2.channel.a.waveData.x.toFixed(0),
+                coyote2.channel.a.waveData.y.toFixed(0),
+                coyote2.channel.a.waveData.z.toFixed(0)
+            ].join(', ')
+        );
+        $('#demo-label-local-wave-b').text(
+            [
+                coyote2.channel.b.waveData.x.toFixed(0),
+                coyote2.channel.b.waveData.y.toFixed(0),
+                coyote2.channel.b.waveData.z.toFixed(0)
+            ].join(', ')
+        );
     },
     onBatteryChanged: value => {
         $('#demo-label-battery').text(value);
@@ -50,8 +64,8 @@ $(document).on('click', '#demo-btn-disconnect', async () => {
 
 $(document).on('click', '#demo-btn-start', () => {
     coyote2.start();
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
 });
 
 $(document).on('click', '#demo-btn-stop', () => {
@@ -64,8 +78,8 @@ $(document).on('click', '#demo-btn-strength', () => {
         b: Number($('#demo-ipt-strength-b').val())
     };
     coyote2.setStrength(strength);
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
 });
 
 $(document).on('click', '#demo-btn-strength-max', () => {
@@ -74,8 +88,8 @@ $(document).on('click', '#demo-btn-strength-max', () => {
         b: Number($('#demo-ipt-strength-b-max').val())
     };
     coyote2.setMaxStrength(strength);
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
 });
 
 function getWaveXYZ() {
