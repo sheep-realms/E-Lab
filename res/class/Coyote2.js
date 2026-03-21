@@ -53,6 +53,7 @@ class Coyote2 {
             envelope: null,
             time: 0,
             timeSync: false,
+            syncOffset: 0,
             syncMethod: null
         };
 
@@ -277,7 +278,7 @@ class Coyote2 {
 
         if (!this.currentEnvelope.playing) return;
         if (this.currentEnvelope.timeSync) {
-            this.currentEnvelope.time = this.currentEnvelope.syncMethod?.() ?? 0;
+            this.currentEnvelope.time = (this.currentEnvelope.syncMethod?.() ?? 0) + this.currentEnvelope.syncOffset;
         }
         const data = this.getEnvelopeValues();
         this.setStrength({
@@ -442,11 +443,13 @@ class Coyote2 {
         this.currentEnvelope.playing = false;
     }
 
-    syncEnvelope(method = () => {}) {
+    syncEnvelope(method = () => {}, offset = 0) {
         this.currentEnvelope.timeSync = true;
         this.currentEnvelope.syncMethod = method;
-        if (this.currentEnvelope.envelope?.options?.loop) {
+        this.currentEnvelope.syncOffset = offset;
+        if (this.currentEnvelope.envelope?.options !== undefined) {
             this.currentEnvelope.envelope.options.loop = false;
+            this.currentEnvelope.envelope.options.cacheResolution = 0.05;
             this.currentEnvelope.envelope.rebuildCache();
         }
     }
