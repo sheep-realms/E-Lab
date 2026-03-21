@@ -89,13 +89,28 @@
             </div>
         </fieldset>
     </div>
-    <fieldset>
-        <legend>Envelope</legend>
-        <button id="demo-btn-envelope-load">Load</button>
-        <button id="demo-btn-envelope-play" disabled>Play</button>
-        <button id="demo-btn-envelope-pause" disabled>Pause</button>
-        <textarea id="demo-ipt-envelope-data"></textarea>
-    </fieldset>
+    <div class="demo-flex">
+        <fieldset>
+            <legend>Video</legend>
+            <label for="demo-video-input">Video File: </label>
+            <input id="demo-video-input" type="file" accept="video/*" />
+            <video id="demo-video-player" controls preload="metadata" tabindex="0" loop></video>
+            <div id="demo-video-time-display" title="Copy Time">0.000</div>
+            <div>
+                <button id="demo-btn-video-step-frame-1">←</button>
+                <button id="demo-btn-video-step-frame-2">→</button>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Envelope</legend>
+            <button id="demo-btn-envelope-load">Load</button>
+            <button id="demo-btn-envelope-unload">Unload</button>
+            <button id="demo-btn-envelope-play" disabled>Play</button>
+            <button id="demo-btn-envelope-pause" disabled>Pause</button>
+            <button id="demo-btn-envelope-video-sync" disabled>Video Sync</button>
+            <textarea id="demo-ipt-envelope-data"></textarea>
+        </fieldset>
+    </div>
 
     <script src="res/script/demo.js"></script>
 </body>

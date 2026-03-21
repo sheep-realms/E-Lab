@@ -26,20 +26,7 @@ class Coyote2 {
             }
         };
 
-        this.strength = {
-            a: 0,
-            b: 0
-        };
         this.strengthWriting = false;
-
-        this.wave = '21810F';
-        this.waveData = {
-            x: 1,
-            y: 9,
-            x: 31
-        };
-        this.targetHz = 100;
-        this.realHz = 100;
 
         this.timer = undefined;
         this.devicePrefix = 'D-LAB';
@@ -56,7 +43,9 @@ class Coyote2 {
         this.currentEnvelope = {
             playing: false,
             envelope: null,
-            time: 0
+            time: 0,
+            timeSync: false,
+            syncMethod: null
         };
 
         this.events = {
@@ -117,7 +106,7 @@ class Coyote2 {
      * @param {Number} z 脉冲宽度 [0, 31]
      * @returns {Object} 计算结果
      */
-    _calculateBestParams(targetHz, z = this.waveData.z ?? 20) {
+    _calculateBestParams(targetHz, z = 20) {
         if (targetHz <= 0 || targetHz > 1000) {
             throw new Error("目标频率范围应为 (0, 1000] Hz")
         }
@@ -275,14 +264,25 @@ class Coyote2 {
             },
             currentEnvelope: this.currentEnvelope
         });
+
         this.sendWave();
+
         if (!this.currentEnvelope.playing) return;
+        if (this.currentEnvelope.timeSync) {
+            this.currentEnvelope.time = this.currentEnvelope.syncMethod?.() ?? 0;
+        }
         const data = this.getEnvelopeValues();
         this.setStrength({
-            a: data.channelA.strength,
-            b: data.channelB.strength
+            a: data.channelAll.strength ?? data.channelA.strength,
+            b: data.channelAll.strength ?? data.channelB.strength
         });
-        this.nextEnvelopeTime();
+        if (data.channelAllHasWave) {
+            this.setWaveXYZ('all', data.channelAll.wave);
+        } else {
+            this.setWaveXYZ('a', data.channelA.wave);
+            this.setWaveXYZ('b', data.channelB.wave);
+        }
+        if (!this.currentEnvelope.timeSync) this.nextEnvelopeTime();
     }
 
     stop() {
@@ -376,6 +376,7 @@ class Coyote2 {
         for (const key in waveData) {
             if (!Object.hasOwn(waveData, key)) continue;
             const e = waveData[key];
+            if (typeof e !== 'number') continue;
             if (channel === 'all' || channel === 'a') this.channel.a.waveData[key] = e;
             if (channel === 'all' || channel === 'b') this.channel.b.waveData[key] = e;
         }
@@ -401,6 +402,12 @@ class Coyote2 {
         this.currentEnvelope.time = 0;
     }
 
+    unloadEnvelope() {
+        this.currentEnvelope.envelope = null;
+        this.currentEnvelope.time = 0;
+        this.currentEnvelope.playing = false;
+    }
+
     playEnvelope() {
         this.currentEnvelope.playing = true;
     }
@@ -409,16 +416,44 @@ class Coyote2 {
         this.currentEnvelope.playing = false;
     }
 
+    syncEnvelope(method = () => {}) {
+        this.currentEnvelope.timeSync = true;
+        this.currentEnvelope.syncMethod = method;
+    }
+
     getEnvelopeValues(time = this.currentEnvelope.time) {
         const values = this.currentEnvelope.envelope.getValues(time);
         return {
+            channelAll: {
+                strength: values.channel_all_strength,
+                wave: {
+                    x: values.channel_all_wave_x,
+                    y: values.channel_all_wave_y,
+                    z: values.channel_all_wave_z,
+                }
+            },
             channelA: {
-                strength: values.channel_a_strength
+                strength: values.channel_a_strength,
+                wave: {
+                    x: values.channel_a_wave_x,
+                    y: values.channel_a_wave_y,
+                    z: values.channel_a_wave_z,
+                }
             },
             channelB: {
-                strength: values.channel_b_strength
-            }
-        }
+                strength: values.channel_b_strength,
+                wave: {
+                    x: values.channel_b_wave_x,
+                    y: values.channel_b_wave_y,
+                    z: values.channel_b_wave_z,
+                }
+            },
+            channelAllHasWave: (
+                values.channel_all_wave_x !== undefined
+                || values.channel_all_wave_y !== undefined
+                || values.channel_all_wave_z !== undefined
+            )
+        };
     }
 
     nextEnvelopeTime() {
