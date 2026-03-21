@@ -2,6 +2,11 @@ let coyote2 = new Coyote2();
 let nowSendFrame = -1;
 let loopCount = 0;
 
+function setLocalStrengthLabel() {
+    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output.toFixed(0));
+    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output.toFixed(0));
+}
+
 coyote2.setEventHandlers({
     onStateChanged: data => {
         $('#demo-btn-connect').text(data.connecting ? 'Connecting...' : 'Connect');
@@ -17,8 +22,7 @@ coyote2.setEventHandlers({
     onStrengthChanged: data => {
         $('#demo-label-strength-a').text(data.a);
         $('#demo-label-strength-b').text(data.b);
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+        setLocalStrengthLabel();
     },
     onPlayingLoop: data => {
         nowSendFrame = (nowSendFrame + 1) % 10;
@@ -28,8 +32,21 @@ coyote2.setEventHandlers({
         $('#demo-label-envelope-playing').text(data.currentEnvelope.playing);
         $('#demo-label-envelope-time').text(data.currentEnvelope.time.toFixed(1));
         $('#demo-label-envelope-end-time').text(data.currentEnvelope.envelope?.tracksEndTime.toFixed(1) || '0.0');
-        $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-        $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+        setLocalStrengthLabel();
+        $('#demo-label-local-wave-a').text(
+            [
+                coyote2.channel.a.waveData.x.toFixed(0),
+                coyote2.channel.a.waveData.y.toFixed(0),
+                coyote2.channel.a.waveData.z.toFixed(0)
+            ].join(', ')
+        );
+        $('#demo-label-local-wave-b').text(
+            [
+                coyote2.channel.b.waveData.x.toFixed(0),
+                coyote2.channel.b.waveData.y.toFixed(0),
+                coyote2.channel.b.waveData.z.toFixed(0)
+            ].join(', ')
+        );
     },
     onBatteryChanged: value => {
         $('#demo-label-battery').text(value);
@@ -50,8 +67,7 @@ $(document).on('click', '#demo-btn-disconnect', async () => {
 
 $(document).on('click', '#demo-btn-start', () => {
     coyote2.start();
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    setLocalStrengthLabel();
 });
 
 $(document).on('click', '#demo-btn-stop', () => {
@@ -64,8 +80,7 @@ $(document).on('click', '#demo-btn-strength', () => {
         b: Number($('#demo-ipt-strength-b').val())
     };
     coyote2.setStrength(strength);
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    setLocalStrengthLabel();
 });
 
 $(document).on('click', '#demo-btn-strength-max', () => {
@@ -74,8 +89,7 @@ $(document).on('click', '#demo-btn-strength-max', () => {
         b: Number($('#demo-ipt-strength-b-max').val())
     };
     coyote2.setMaxStrength(strength);
-    $('#demo-label-local-strength-a').text(coyote2.channel.a.strength.output);
-    $('#demo-label-local-strength-b').text(coyote2.channel.b.strength.output);
+    setLocalStrengthLabel();
 });
 
 function getWaveXYZ() {
@@ -134,9 +148,10 @@ $(document).on('click', '#demo-btn-envelope-pause', () => {
 });
 
 $(document).on('click', '#demo-btn-envelope-video-sync', () => {
+    const offset = Number($('#demo-ipt-envelope-video-sync-offset').val());
     coyote2.syncEnvelope(() => {
         return videoPlayer.currentTime;
-    });
+    }, offset);
 });
 
 const demoTracks = [
@@ -287,4 +302,16 @@ $videoPlayer.on('pause', () => {
         rafId = null;
     }
     $timeDisplay.text(fmt(videoPlayer.currentTime));
+});
+
+
+
+const $envelopeFileInput = $('#demo-envelope-file-input');
+
+$envelopeFileInput.on('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+
+    const text = await f.text();
+    $('#demo-ipt-envelope-data').val(text);
 });

@@ -9,6 +9,7 @@
     <script src="res/class/Envelope.js"></script>
     <script src="res/class/BluetoothDeviceManager.js"></script>
     <script src="res/class/Coyote2.js"></script>
+    <script src="res/class/Coyote3.js"></script>
     <link rel="stylesheet" href="res/style/demo.css">
 </head>
 <body>
@@ -61,6 +62,12 @@
                 B: <span id="demo-label-local-strength-b">0</span>
             </div>
             <div>
+                Wave A: <span id="demo-label-local-wave-a">1, 9, 31</span>
+            </div>
+            <div>
+                Wave B: <span id="demo-label-local-wave-b">1, 9, 31</span>
+            </div>
+            <div>
                 Sent Frames:
                 <div class="demo-send-frames">
                     <div class="frame"></div>
@@ -103,7 +110,9 @@
             <legend>Video</legend>
             <label for="demo-video-input">Video File: </label>
             <input id="demo-video-input" type="file" accept="video/*" />
-            <video id="demo-video-player" controls preload="metadata" tabindex="0" loop></video>
+            <div style="margin-top: 12px;">
+                <video id="demo-video-player" controls preload="metadata" tabindex="0" loop></video>
+            </div>
             <div id="demo-video-time-display" title="Copy Time">0.000</div>
             <div>
                 <button id="demo-btn-video-step-frame-1">←</button>
@@ -112,11 +121,20 @@
         </fieldset>
         <fieldset>
             <legend>Envelope</legend>
-            <button id="demo-btn-envelope-load">Load</button>
-            <button id="demo-btn-envelope-unload">Unload</button>
-            <button id="demo-btn-envelope-play" disabled>Play</button>
-            <button id="demo-btn-envelope-pause" disabled>Pause</button>
-            <button id="demo-btn-envelope-video-sync" disabled>Video Sync</button>
+            <div>
+                <button id="demo-btn-envelope-load">Load</button>
+                <button id="demo-btn-envelope-unload">Unload</button>
+                <button id="demo-btn-envelope-play" disabled>Play</button>
+                <button id="demo-btn-envelope-pause" disabled>Pause</button>
+                <button id="demo-btn-envelope-video-sync" disabled>Video Sync</button>
+            </div>
+            <div>
+                <label for="demo-ipt-wave-z">Offset:</label>
+                <input type="number" id="demo-ipt-envelope-video-sync-offset" value="0" step="0.1">
+            </div>
+            <div style="margin-top: 12px;">
+                <input id="demo-envelope-file-input" type="file" accept=".json, .txt" />
+            </div>
             <textarea id="demo-ipt-envelope-data"></textarea>
         </fieldset>
     </div>
