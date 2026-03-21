@@ -33,3 +33,7 @@
     min-height: 128px;
     resize: vertical;
 }
+
+#demo-video-player {
+    width: 100%;
+}
