@@ -288,3 +288,15 @@ $videoPlayer.on('pause', () => {
     }
     $timeDisplay.text(fmt(videoPlayer.currentTime));
 });
+
+
+
+const $envelopeFileInput = $('#demo-envelope-file-input');
+
+$envelopeFileInput.on('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+
+    const text = await f.text();
+    $('#demo-ipt-envelope-data').val(text);
+});
