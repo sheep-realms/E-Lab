@@ -13,6 +13,7 @@ class Envelope {
             ...options
         };
 
+        this.originalTracks = tracks;
         this.trackNames = [];
         this.tracks = [];
         this.tracksEndTime = 0;
@@ -25,12 +26,12 @@ class Envelope {
 
         this.result = Object.create(null);
 
-        if (tracks.length) {
-            this.setTracks(tracks);
+        if (this.originalTracks.length) {
+            this.setTracks(this.originalTracks);
         }
     }
 
-    setTracks(tracksInput) {
+    setTracks(tracksInput = this.originalTracks) {
         this.trackNames.length = 0;
         this.tracks.length = 0;
         this.tracksEndTime = 0;
@@ -131,6 +132,15 @@ class Envelope {
         const k = ease(ratio);
 
         return v0 + (v1 - v0) * k;
+    }
+
+    rebuildCache() {
+        this.cache = null;
+        this.cacheStart = 0;
+        this.cacheEnd = 0;
+        this.cacheStep = 0;
+        this.cacheSize = 0;
+        return this._buildCache();
     }
 
     _buildCache() {

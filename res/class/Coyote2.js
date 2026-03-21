@@ -445,6 +445,10 @@ class Coyote2 {
     syncEnvelope(method = () => {}) {
         this.currentEnvelope.timeSync = true;
         this.currentEnvelope.syncMethod = method;
+        if (this.currentEnvelope.envelope?.options?.loop) {
+            this.currentEnvelope.envelope.options.loop = false;
+            this.currentEnvelope.envelope.rebuildCache();
+        }
     }
 
     getEnvelopeValues(time = this.currentEnvelope.time) {
